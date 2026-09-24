@@ -1,7 +1,7 @@
-Flask==3.1.0
-pandas==2.2.3
-pytest==8.3.5
-scikit-learn==1.7.2
-joblib==1.5.2
-psycopg2-binary==2.9.10
-gunicorn==23.0.0
+Flask
+pandas
+pytest
+scikit-learn
+joblib
+psycopg2-binary
+gunicorn
