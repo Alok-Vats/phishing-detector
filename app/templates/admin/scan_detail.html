@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Scan Details{% endblock %}
+{% block content %}
+<section class="panel">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h2>Scan Detailed View (#{{ scan.id }})</h2>
+        <a href="{{ url_for('admin.history_view') }}" class="button-link button-link-secondary">Back to History</a>
+    </div>
+
+    <div class="panel-grid">
+        <div class="detail-item">
+            <span class="detail-label">Classification</span>
+            <span class="badge badge-{{ scan.prediction }}">{{ scan.prediction | upper }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Confidence</span>
+            <span class="detail-value">{{ "%.1f"|format(scan.confidence * 100) }}%</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Timestamp</span>
+            <span class="detail-value">{{ scan.created_at }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Engine Module</span>
+            <span class="detail-value">{{ scan.model_source.replace('_', ' ') | title }}</span>
+        </div>
+    </div>
+
+    <h3 style="margin-top: 2rem;">Target Information</h3>
+    <div class="xai-block">
+        <div class="xai-item"><strong>Type:</strong> <span>{{ scan.input_type | title }}</span></div>
+        <div class="xai-item"><strong>Target:</strong> <span>{{ scan.normalized_value }}</span></div>
+        {% if scan.matched_list %}
+        <div class="xai-item"><strong>List Match:</strong> <span style="color: var(--danger-color)">{{ scan.matched_list | title }}</span></div>
+        {% endif %}
+    </div>
+
+    {% if scan.reasons %}
+    <h3 style="margin-top: 2rem;">Contributing Signals</h3>
+    <ul>
+        {% for reason in scan.reasons %}
+        <li>{{ reason }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    
+    {% if scan.threat_intel_results %}
+    <h3 style="margin-top: 2rem;">Threat Intel Providers</h3>
+    <ul>
+        {% for rep in scan.threat_intel_results %}
+        <li>
+            <strong>{{ rep.provider }}</strong>: 
+            <span style="color: {{ 'var(--danger-color)' if rep.is_malicious else 'var(--success-color)' }}">
+                {{ 'Malicious' if rep.is_malicious else 'Clean' }}
+            </span>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <h3 style="margin-top: 2rem;">Raw Features JSON</h3>
+    <pre style="background: rgba(0,0,0,0.5); padding: 1rem; border-radius: 8px; overflow-x: auto; font-size: 0.85rem; color: #cbd5e1;">{{ scan.features | tojson(indent=2) }}</pre>
+
+</section>
+{% endblock %}

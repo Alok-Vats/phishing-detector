@@ -1,0 +1,6 @@
+{
+  "phishing_email_model.pkl": "804a0eb671e2c664ca26bbcb76a7aa02e72afa1e89e152622a9406a1b1515a5c",
+  "phishing_email_vectorizer.pkl": "a407dd44a4972e4e53eed93b85a0285d0a492279e509042151efbb5d986e58c9",
+  "phishing_url_model_v2.pkl": "422fc03312932254c7c7d6f6cf007a928b42f1bc4fd887287bfdae0251760c01",
+  "phishing_url_model.pkl": "d156b02bc70bd6f070366316c2502ad1497edb8cff312967b57bf5b29de53f0f"
+}

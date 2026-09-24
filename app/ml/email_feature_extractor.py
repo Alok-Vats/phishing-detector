@@ -7,16 +7,8 @@ from urllib.parse import urlparse
 
 
 SUSPICIOUS_EMAIL_KEYWORDS = (
-    "verify",
-    "urgent",
-    "password",
-    "reset",
-    "account",
-    "bank",
-    "suspend",
-    "login",
-    "click",
-    "limited time",
+    "verify", "urgent", "password", "reset", "account", "bank", "suspend", 
+    "login", "click", "limited time", "credential", "payment", "invoice"
 )
 
 URL_PATTERN = re.compile(r"https?://[^\s)>\]]+")
@@ -29,24 +21,36 @@ def extract_email_features(sender: str, subject: str, body: str) -> dict:
     normalized_body = body.strip().lower()
     combined_text = f"{normalized_subject} {normalized_body}"
     discovered_urls = URL_PATTERN.findall(body)
+    
+    sender_domain = _extract_sender_domain(normalized_sender)
+    
+    external_domains = set()
+    for u in discovered_urls:
+        try:
+            h = urlparse(u).hostname
+            if h and h != sender_domain:
+                external_domains.add(h)
+        except Exception:
+            pass
 
     return {
-        "sender_domain": _extract_sender_domain(normalized_sender),
+        "sender_domain": sender_domain,
         "subject_length": len(subject.strip()),
         "body_length": len(body.strip()),
         "url_count": len(discovered_urls),
-        "contains_html_link": int("<a " in body.lower()),
+        "external_domain_count": len(external_domains),
+        "contains_html_link": int("<a " in body.lower() or "<html" in body.lower()),
         "contains_urgent_language": int(
-            any(keyword in combined_text for keyword in ("urgent", "immediately", "action required"))
+            any(keyword in combined_text for keyword in ("urgent", "immediately", "action required", "act now", "important"))
         ),
         "contains_suspicious_keyword": int(
             any(keyword in combined_text for keyword in SUSPICIOUS_EMAIL_KEYWORDS)
         ),
-        "contains_reply_to_mismatch_hint": int("reply-to" in body.lower()),
+        "contains_reply_to_mismatch_hint": int("reply-to" in body.lower() or "return-path" in body.lower()),
         "contains_attachment_hint": int(
-            any(token in combined_text for token in ("attachment", ".zip", ".exe", ".html"))
+            any(token in combined_text for token in ("attachment", ".zip", ".exe", ".html", "attached", ".pdf"))
         ),
-        "external_sender": int(not normalized_sender.endswith((".edu", ".org", ".com"))),
+        "external_sender": int(not normalized_sender.endswith((".edu", ".org", ".com", ".gov"))),
         "display_name_mismatch_hint": int(_has_display_name_mismatch(normalized_sender)),
     }
 

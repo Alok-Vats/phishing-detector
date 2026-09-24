@@ -25,8 +25,10 @@ def load_dataset(dataset_path: str | Path) -> pd.DataFrame:
         raise ValueError(f"Dataset is missing required columns: {missing}")
 
     cleaned = dataframe.loc[:, ["url", "label"]].dropna().copy()
-    cleaned["url"] = cleaned["url"].astype(str).str.strip()
-    cleaned["label"] = cleaned["label"].astype(str).str.strip().str.lower()
+    cleaned = cleaned.assign(
+        url=cleaned["url"].astype(str).str.strip(),
+        label=cleaned["label"].astype(str).str.strip().str.lower()
+    )
     cleaned = cleaned[cleaned["url"] != ""]
     cleaned = cleaned[cleaned["label"].isin({"phishing", "legitimate"})]
 

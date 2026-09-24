@@ -1,0 +1,11 @@
+{
+  "accuracy": 1.0,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1_score": 1.0,
+  "train_size": 18,
+  "test_size": 6,
+  "feature_count": 19,
+  "old_model_accuracy": 1.0,
+  "old_model_f1": 1.0
+}

@@ -1,58 +1,99 @@
 {% extends "base.html" %}
 
-{% block title %}Analysis Result{% endblock %}
+{% block title %}Analysis Result | AI Threat Detection{% endblock %}
 
 {% block content %}
   <section class="panel">
-    <h2>Analysis Result</h2>
-    <p><strong>Input Type:</strong> {{ result.input_type | title }}</p>
-    {% if result.input_type == "url" %}
-      <p><strong>URL:</strong> {{ result.url }}</p>
-    {% else %}
-      <p><strong>Sender:</strong> {{ result.sender }}</p>
-      <p><strong>Subject:</strong> {{ result.subject }}</p>
-    {% endif %}
-    <p>
-      <strong>Status:</strong>
-      <span class="badge badge-{{ result.prediction }}">{{ result.prediction | upper }}</span>
-    </p>
-    <p><strong>Confidence:</strong> {{ "%.1f"|format(result.confidence * 100) }}%</p>
-    <p><strong>Detection Source:</strong> {{ result.model_source.replace('_', ' ') | title }}</p>
-    {% if result.matched_list %}
-      <p><strong>Matched List:</strong> {{ result.matched_list | title }}</p>
+    <div class="result-header">
+      <div>
+        <h2>{{ result.classification | upper }} THREAT DETECTED</h2>
+        <p style="color: var(--text-secondary)">
+          <strong>Target:</strong> 
+          {% if result.input_type == "url" %}
+            {{ result.url }}
+          {% else %}
+            Email from {{ result.sender }}
+          {% endif %}
+        </p>
+      </div>
+      
+      <div class="score-display">
+        <div class="score-circle score-{{ result.classification }}">
+          {{ result.risk_score }}
+          <span style="font-size: 0.7rem; font-weight: normal; color: var(--text-secondary)">/100</span>
+        </div>
+      </div>
+    </div>
+
+    <ul class="detail-list">
+      <li class="detail-item">
+        <span class="detail-label">Status</span>
+        <span class="badge badge-{{ result.classification }}">{{ result.classification }}</span>
+      </li>
+      <li class="detail-item">
+        <span class="detail-label">Confidence</span>
+        <span class="detail-value">{{ "%.1f"|format(result.confidence * 100) }}%</span>
+      </li>
+      <li class="detail-item">
+        <span class="detail-label">Engine Module</span>
+        <span class="detail-value">{{ result.model_source.replace('_', ' ') | title }}</span>
+      </li>
+      {% if result.matched_list %}
+      <li class="detail-item">
+        <span class="detail-label">List Match</span>
+        <span class="detail-value">{{ result.matched_list | title }}</span>
+      </li>
+      {% endif %}
+    </ul>
+
+    {% if result.explanation %}
+    <div class="xai-block" style="margin-bottom: 1.5rem; background: rgba(255,255,255,0.02); border-left: 3px solid var(--text-secondary);">
+      <strong>Engine Explanation:</strong> {{ result.explanation }}
+    </div>
     {% endif %}
 
-    <h3>Reasons</h3>
-    <ul>
-      {% for reason in result.reasons %}
-        <li>{{ reason }}</li>
+    {% if result.xai_explanations and result.xai_explanations|length > 0 %}
+    <h3>AI Explainability (XAI) Top Signals</h3>
+    <div class="xai-block">
+      {% for exp in result.xai_explanations %}
+        <div class="xai-item">
+          <span><strong>{{ exp.reason | title }}</strong> (Feature: {{ exp.feature }})</span>
+          <span style="color: var(--primary)">Weight: {{ "%.2f"|format(exp.importance) }}</span>
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if result.reputation_sources and result.reputation_sources|length > 0 %}
+    <h3>External Threat Intelligence</h3>
+    <div style="margin-top: 1rem;">
+      {% for rep in result.reputation_sources %}
+        <span class="intel-tag {{ 'intel-malicious' if rep.is_malicious else '' }}">
+          {{ rep.provider }}: {{ "Malicious" if rep.is_malicious else "Clean/Unknown" }}
+        </span>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <h3>All Contributing Signals</h3>
+    <ul style="color: var(--text-secondary); line-height: 1.6;">
+      {% for signal in result.contributing_signals %}
+        <li>{{ signal }}</li>
       {% endfor %}
     </ul>
 
-    <h3>Technical Details</h3>
-    {% if result.input_type == "url" %}
-      <ul>
-        <li>Normalized URL: {{ result.details.normalized_url }}</li>
-        <li>Hostname: {{ result.details.hostname }}</li>
-        <li>Scheme: {{ result.details.scheme }}</li>
-        <li>Length: {{ result.details.length }}</li>
-        <li>HTTPS Enabled: {{ "Yes" if result.details.uses_https else "No" }}</li>
-        <li>Subdomains: {{ result.details.features.subdomain_count }}</li>
-        <li>Special Characters: {{ result.details.features.special_character_count }}</li>
-        <li>Suspicious Keyword Detected: {{ "Yes" if result.details.features.contains_suspicious_keyword else "No" }}</li>
-      </ul>
-    {% else %}
-      <ul>
-        <li>Normalized Sender: {{ result.details.normalized_sender }}</li>
-        <li>Body Preview: {{ result.details.body_preview }}</li>
-        <li>Embedded URLs: {{ result.details.features.url_count }}</li>
-        <li>Urgent Language: {{ "Yes" if result.details.features.contains_urgent_language else "No" }}</li>
-        <li>HTML Link Detected: {{ "Yes" if result.details.features.contains_html_link else "No" }}</li>
-        <li>Suspicious Keyword Detected: {{ "Yes" if result.details.features.contains_suspicious_keyword else "No" }}</li>
-      </ul>
+    {% if result.input_type == "email" and result.details.linked_urls %}
+    <h3>Embedded URLs Detected</h3>
+    <ul style="color: var(--text-secondary); word-break: break-all;">
+      {% for url in result.details.linked_urls %}
+        <li>{{ url }}</li>
+      {% endfor %}
+    </ul>
     {% endif %}
 
-    <a class="button-link" href="{{ url_for('main.index') }}">Analyze another URL</a>
-    <a class="button-link button-link-secondary" href="{{ url_for('main.history') }}">View history</a>
+    <div style="margin-top: 3rem; display: flex; gap: 1rem;">
+      <a class="button-link" href="{{ url_for('main.index') }}">Analyze Another</a>
+      <a class="button-link button-link-secondary" href="{{ url_for('main.history') }}">View History</a>
+    </div>
   </section>
 {% endblock %}

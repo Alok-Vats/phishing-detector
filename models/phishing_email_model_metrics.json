@@ -1,0 +1,24 @@
+{
+  "dataset_size": 82486,
+  "train_size": 65988,
+  "test_size": 16498,
+  "selected_model": "LinearSVM",
+  "inference_time_seconds": 0.007222652435302734,
+  "accuracy": 0.9915747363316766,
+  "precision": 0.9900139340455179,
+  "recall": 0.9938221237906516,
+  "f1_score": 0.9919143738002443,
+  "roc_auc": 0.9992492467407463,
+  "false_positive_rate": 0.010859957065286021,
+  "false_negative_rate": 0.006177876209348409,
+  "confusion_matrix": [
+    [
+      7833,
+      86
+    ],
+    [
+      53,
+      8526
+    ]
+  ]
+}

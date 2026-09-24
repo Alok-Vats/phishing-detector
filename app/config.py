@@ -22,6 +22,18 @@ class Config:
     )
     DEBUG = False
     TESTING = False
+    
+    # Security configs
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SECURE = os.getenv("FLASK_ENV") == "production"
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    MAX_CONTENT_LENGTH = 10 * 1024 * 1024  # 10 MB limit globally
+    
+    # Threat Intelligence Config
+    THREAT_INTEL_TIMEOUT_SECONDS = int(os.getenv("THREAT_INTEL_TIMEOUT_SECONDS", 3))
+    THREAT_INTEL_URLHAUS_ENABLED = os.getenv("THREAT_INTEL_URLHAUS_ENABLED", "True").lower() == "true"
+    THREAT_INTEL_VIRUSTOTAL_ENABLED = os.getenv("THREAT_INTEL_VIRUSTOTAL_ENABLED", "True").lower() == "true"
+    THREAT_INTEL_VIRUSTOTAL_API_KEY = os.getenv("THREAT_INTEL_VIRUSTOTAL_API_KEY", "")
 
 
 class DevelopmentConfig(Config):

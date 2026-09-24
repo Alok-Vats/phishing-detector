@@ -19,6 +19,7 @@
       {% endif %}
 
       <form action="{{ url_for('main.analyze') }}" method="post" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <label for="url">URL</label>
         <input
           id="url"
@@ -47,6 +48,7 @@
       {% endif %}
 
       <form action="{{ url_for('main.analyze_email') }}" method="post" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <label for="sender">Sender</label>
         <input
           id="sender"

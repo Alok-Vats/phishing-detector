@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Advanced Scan History{% endblock %}
+{% block content %}
+<section class="panel">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+        <h2>Advanced History</h2>
+        <div style="display: flex; gap: 0.5rem;">
+            <a href="{{ url_for('admin.export_history', format='csv', q=q, type=type, classification=classification) }}" class="button-link" style="padding: 0.5rem 1rem; font-size: 0.85rem;">Export CSV</a>
+            <a href="{{ url_for('admin.export_history', format='json', q=q, type=type, classification=classification) }}" class="button-link" style="padding: 0.5rem 1rem; font-size: 0.85rem;">Export JSON</a>
+            <button onclick="window.print()" style="padding: 0.5rem 1rem; font-size: 0.85rem; background: var(--panel-border);">Export PDF</button>
+            <a href="{{ url_for('admin.dashboard') }}" class="button-link button-link-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">Back to Dashboard</a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <form method="GET" style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem; align-items: flex-end;">
+        <div>
+            <label style="font-size: 0.8rem; color: var(--text-secondary)">Search Target</label>
+            <input type="text" name="q" value="{{ q }}" placeholder="Search URL/Email..." style="padding: 0.5rem; border-radius: 6px;">
+        </div>
+        <div>
+            <label style="font-size: 0.8rem; color: var(--text-secondary)">Type</label>
+            <select name="type" style="padding: 0.6rem; border-radius: 6px; background: rgba(0,0,0,0.3); color: #fff; border: 1px solid var(--panel-border)">
+                <option value="">All Types</option>
+                <option value="url" {% if type == 'url' %}selected{% endif %}>URL</option>
+                <option value="email" {% if type == 'email' %}selected{% endif %}>Email</option>
+            </select>
+        </div>
+        <div>
+            <label style="font-size: 0.8rem; color: var(--text-secondary)">Classification</label>
+            <select name="classification" style="padding: 0.6rem; border-radius: 6px; background: rgba(0,0,0,0.3); color: #fff; border: 1px solid var(--panel-border)">
+                <option value="">All</option>
+                <option value="phishing" {% if classification == 'phishing' %}selected{% endif %}>Phishing</option>
+                <option value="suspicious" {% if classification == 'suspicious' %}selected{% endif %}>Suspicious</option>
+                <option value="legitimate" {% if classification == 'legitimate' %}selected{% endif %}>Legitimate</option>
+            </select>
+        </div>
+        <button type="submit" style="padding: 0.6rem 1rem;">Filter</button>
+    </form>
+
+    <div class="history-table-wrapper">
+        <table class="history-table">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Type</th>
+                    <th>Target</th>
+                    <th>Classification</th>
+                    <th>Score</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                <tr>
+                    <td>{{ record.created_at }}</td>
+                    <td>{{ record.input_type | title }}</td>
+                    <td class="history-url">{{ record.normalized_value | truncate(50) }}</td>
+                    <td>
+                        <span class="badge badge-{{ record.prediction }}">{{ record.prediction | upper }}</span>
+                    </td>
+                    <td>{{ "%.1f"|format(record.confidence * 100) }}%</td>
+                    <td>
+                        <a href="{{ url_for('admin.scan_detail', scan_id=record.id) }}" style="color: var(--primary);">View</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="empty-state">
+                        <div style="font-size: 2rem; margin-bottom: 1rem;">📭</div>
+                        <h3>No Scans Found</h3>
+                        <p>No records match your criteria.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div style="margin-top: 2rem; display: flex; justify-content: space-between;">
+        {% if page > 1 %}
+        <a href="{{ url_for('admin.history_view', page=page-1, q=q, type=type, classification=classification) }}" class="button-link button-link-secondary">&larr; Previous</a>
+        {% else %}
+        <div></div>
+        {% endif %}
+        
+        {% if records|length == 20 %}
+        <a href="{{ url_for('admin.history_view', page=page+1, q=q, type=type, classification=classification) }}" class="button-link button-link-secondary">Next &rarr;</a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

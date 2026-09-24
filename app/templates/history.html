@@ -5,7 +5,7 @@
 {% block content %}
   <section class="panel">
     <h2>Scan History</h2>
-    <p>Recent URL analysis requests stored in SQLite.</p>
+    <p>Recent analysis requests.</p>
 
     {% if records %}
       <div class="history-table-wrapper">
@@ -28,7 +28,11 @@
                 <td>{{ record.input_type | title }}</td>
                 <td class="history-url">{{ record.normalized_value }}</td>
                 <td>
-                  <span class="badge badge-{{ record.prediction }}">{{ record.prediction | upper }}</span>
+                  {% set cls = record.prediction %}
+                  {% if cls not in ['phishing', 'suspicious', 'legitimate'] %}
+                    {% set cls = 'suspicious' %}
+                  {% endif %}
+                  <span class="badge badge-{{ cls }}">{{ record.prediction | upper }}</span>
                 </td>
                 <td>{{ "%.1f"|format(record.confidence * 100) }}%</td>
                 <td>{{ record.model_source.replace('_', ' ') | title }}</td>

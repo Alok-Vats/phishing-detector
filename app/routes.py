@@ -10,7 +10,19 @@ from app.services.prediction_service import analyze_url
 from app.utils.validators import validate_email_input, validate_url_input
 
 
+from flask import Blueprint, request, jsonify, render_template, current_app, session
+
 main_bp = Blueprint("main", __name__)
+
+@main_bp.before_request
+def check_csrf():
+    if current_app.testing:
+        return
+    if request.method in ["POST", "PUT", "DELETE", "PATCH"]:
+        token = request.form.get("csrf_token")
+        if not token or token != session.get("csrf_token"):
+            from flask import abort
+            abort(400, "CSRF token missing or invalid.")
 
 
 def _prefers_json_response() -> bool:
