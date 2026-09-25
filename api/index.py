@@ -11,10 +11,9 @@ app = create_app('production')
 
 # Optional: Add a simple health endpoint check directly if needed,
 # but our app might already have one.
-# temporaryly commenting this out to check vercel deployment issue
-#@app.route('/health')
-#def health_check():
-#    return {"status": "ok", "environment": "production"}, 200
+@app.route('/health')
+def health_check():
+   return {"status": "ok", "environment": "production"}, 200
 
 # Serverless execution point for Vercel
 # Vercel automatically looks for `app` in `api/index.py`.
