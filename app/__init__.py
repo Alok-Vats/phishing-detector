@@ -15,17 +15,43 @@ import os
 def create_app(config_name: str | None = None) -> Flask:
     """Create and configure the Flask application instance."""
     basedir = os.path.abspath(os.path.dirname(__file__))
+
+    # 25-09-26
+    # Commenting out and checking for vercel
+    # app = Flask(
+    #     __name__, 
+    #     instance_relative_config=True,
+    #     template_folder=os.path.join(basedir, 'templates'),
+    #     static_folder=os.path.join(basedir, 'static')
+    # )
+
+    # Vercel fix
+    # Therefore, use FLASK_INSTANCE_PATH when it is provided.
+    #
+    # On Vercel, set:
+    # FLASK_INSTANCE_PATH=/tmp/phish-shield-instance
+    #
+    # Locally, if FLASK_INSTANCE_PATH is not set, Flask will use its normal instance directory.
+    instance_path = os.environ.get("FLASK_INSTANCE_PATH")
+
     app = Flask(
-        __name__, 
+        __name__,
+        instance_path=instance_path,
         instance_relative_config=True,
         template_folder=os.path.join(basedir, 'templates'),
         static_folder=os.path.join(basedir, 'static')
     )
+
     app.config.from_object(get_config(config_name))
 
+    # 25-09-26
+    # Vercel Fix
     # Ensure Flask's instance directory exists for the SQLite database file.
-    app.instance_path and __import__("os").makedirs(app.instance_path, exist_ok=True)
+    #app.instance_path and __import__("os").makedirs(app.instance_path, exist_ok=True)
 
+    # Create the instance directory in the writable /tmp location when running on Vercel.
+    os.makedirs(app.instance_path, exist_ok=True)
+    
     init_db_app(app)
     app.teardown_appcontext(close_db)
     app.register_blueprint(main_bp)
