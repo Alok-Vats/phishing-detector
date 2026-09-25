@@ -4,6 +4,18 @@ import sys
 # Ensure the root of the project is in the Python path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# Vercel's deployment filesystem (/var/task) is read-only.
+# Flask normally tries to create its instance directory there.
+#
+# Force Flask to use /tmp, which is writable in Vercel's serverless environment.
+#
+# This is done here BEFORE create_app() is called.
+
+os.environ.setdefault(
+    "FLASK_INSTANCE_PATH",
+    "/tmp/phish-shield-instance"
+)
+
 from app import create_app
 
 # Vercel sets FLASK_ENV or similar, we can explicitly set production
